@@ -30,23 +30,40 @@ Berikut adalah hasil simulasi dari model ini:
 ### 1. IFRS 17 vs IFRS 4 Profit Emergence
 Perbandingan pola pengakuan laba. IFRS 17 meratakan laba sepanjang masa kontrak melalui mekanisme CSM, berbeda dengan IFRS 4 yang cenderung *front-loaded*.
 
-![Profit Comparison](output/ifrs17_visualizations/07_ifrs17_vs_ifrs4.png)
+![Profit Comparison](output/07_ifrs17_vs_ifrs4.png)
 
 ### 2. CSM Amortization Pattern
 Visualisasi bagaimana marjin jasa kontraktual dilepaskan ke P&L seiring berjalannya layanan asuransi.
 
-![CSM Amortization](output/ifrs17_visualizations/05_csm_amortization.png)
+![CSM Amortization](output/05_csm_amortization.png)
 
 *(Catatan: Lihat folder `output/` untuk visualisasi lengkap termasuk Risk Adjustment dan GMM vs PAA)*
 
 ## 🛠️ Technical Methodology & Assumptions
 
-Untuk menjaga transparansi (*intellectual honesty*), model ini menggunakan asumsi berikut:
+This IFRS 17 engine is built on a bottom-up approach, calculating liabilities at the contract level before aggregation. The key actuarial assumptions used in the simulation are:
 
-* **Discount Rate:** [Jelaskan: Apakah menggunakan Flat yield curve (misal 3%) atau EIOPA/Risk-free rate curve?]
-* **Risk Adjustment (RA):** [Jelaskan: Metode apa yang dipakai? Cost of Capital atau VaR confidence level tertentu?]
-* **Mortality/Morbidity:** [Jelaskan: Menggunakan tabel standar apa atau asumsi simplifikasi?]
-* **Aggregation Level:** Perhitungan dilakukan pada level [Individual Contract / Group of Contracts / Portfolio].
+* **Discount Rates:**
+    * **Long-duration (GMM):** 5.0% flat rate (proxy for long-term risk-free rate + illiquidity premium).
+    * **Short-duration (PAA):** 3.0% flat rate.
+* **Risk Adjustment (RA):**
+    * **Methodology:** Cost of Capital (CoC) approach.
+    * **CoC Rate:** 6% per annum applied to projected Solvency Capital Requirement (SCR).
+    * **Risk Factors:** Product-specific risk weights ranging from 2.0% (Term Life) to 8.0% (Motor) of Sum Assured.
+* **Mortality Model:**
+    * Deterministic projection using **Makeham's Law** `μ_x = A + B * c^x`.
+    * **Base assumption:** `c = 1.085` to model increasing mortality with age.
+    * **Cap:** Maximum mortality rate capped at 0.95.
+* **Lapse Rates:**
+    * Explicit lapse rates modeled per product type:
+        * Whole Life: 10%
+        * Term Life: 12%
+        * Endowment: 8%
+        * General Insurance (Motor/Property): 20-25%
+* **Expense Inflation:** 3.0% per annum applied to renewal expenses.
+* **Measurement Models:**
+    * **GMM (Building Block Approach):** Applied to Whole Life, Term Life, and Endowment products.
+    * **PAA:** Applied to Motor and Property insurance (coverage period ≤ 1 year).
 
 ## 💻 How to Run
 
